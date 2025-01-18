@@ -1,4 +1,4 @@
-use random::lexer::lex;
+use the_lang::lexer::lex;
 
 // A test before I make the CLI interface.
 fn main() {
