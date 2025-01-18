@@ -13,7 +13,7 @@ pub enum Token {
     Keyword(Keywords),
     #[regex(r"[A-Za-z_][A-Za-z0-9_]*", |lex| lex.slice().to_string())]
     Identifier(String),
-    #[regex(r"(0x[0-9a-fA-F]+|0o[0-7]+|0b[01]+)|\d+", parse_int)]
+    #[regex(r"(0x[0-9a-fA-F_]+|0o[0-7_]+|0b[01_]+|\d{1,3}(_\d{3})*)", parse_int)]
     Int(isize),
     #[regex(r"\d+\.\d+", |lex| lex.slice().parse::<f64>().unwrap())]
     Float(f64),
@@ -60,18 +60,20 @@ fn which_keyowrd<'s>(lex: &mut Lexer<'s, Token>) -> Keywords {
 }
 fn parse_int<'s>(lex: &mut Lexer<'s, Token>) -> isize {
     let val = lex.slice();
-    
+
+    let cleaned_val: String = val.chars().filter(|&c| c != '_').collect();
+
     if val.starts_with("0x") {
         // Hexadecimal
-        isize::from_str_radix(&val[2..], 16).expect("Failed to parse hex")
+        isize::from_str_radix(&cleaned_val[2..], 16).expect("Failed to parse hex")
     } else if val.starts_with("0b") {
         // Binary
-        isize::from_str_radix(&val[2..], 2).expect("Failed to parse binary")
+        isize::from_str_radix(&cleaned_val[2..], 2).expect("Failed to parse binary")
     } else if val.starts_with("0o") {
         // Octal
-        isize::from_str_radix(&val[2..], 8).expect("Failed to parse octal")
+        isize::from_str_radix(&cleaned_val[2..], 8).expect("Failed to parse octal")
     } else {
         // Decimal
-        val.parse::<isize>().expect("Failed to parse decimal")
+        cleaned_val.parse::<isize>().expect("Failed to parse decimal")
     }
 }
